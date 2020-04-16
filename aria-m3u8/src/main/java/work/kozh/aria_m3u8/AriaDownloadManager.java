@@ -1,6 +1,7 @@
 package work.kozh.aria_m3u8;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.arialyy.aria.core.Aria;
 import com.arialyy.aria.core.download.DownloadEntity;
@@ -53,12 +54,34 @@ public class AriaDownloadManager {
     }
 
     /**
+     * 对于非Context类型的注册
+     * 如 adapter中 ，需要配合init（）一起使用以初始化
+     *
+     * @param object
+     */
+    public static void register(Object object) {
+        Aria.download(object).register();
+        Log.i("TAG", "注册Aria：" + object.getClass());
+    }
+
+    /**
      * 注销下载
      *
      * @param context
      */
     public static void unRegister(Context context) {
         Aria.download(context).unRegister();
+    }
+
+    /**
+     * 对于非Context类型的注销
+     * 如 adapter中
+     *
+     * @param object
+     */
+    public static void unRegister(Object object) {
+        Aria.download(object).unRegister();
+        Log.i("TAG", "注销Aria：" + object.getClass());
     }
 
     /**

@@ -31,4 +31,6 @@ dependencies {
 
     annotationProcessor 'com.arialyy.aria:compiler:3.8.6'
 
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.50'
+    implementation 'com.google.android.material:material:1.0.0'
 }

@@ -1,6 +1,7 @@
 package work.kozh.m3u8_aria;
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -13,6 +14,7 @@ import com.arialyy.annotations.Download;
 import com.arialyy.annotations.M3U8;
 import com.arialyy.aria.core.task.DownloadTask;
 import com.arialyy.aria.util.CommonUtil;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mDownload;
     private Button mPause;
     private Button mCancle;
+    private FloatingActionButton mFab;
 
 
     @Override
@@ -48,6 +51,15 @@ public class MainActivity extends AppCompatActivity {
         mDownload = findViewById(R.id.download);
         mPause = findViewById(R.id.pause);
         mCancle = findViewById(R.id.cancle);
+        mFab = findViewById(R.id.fab);
+
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DownloadListActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 
