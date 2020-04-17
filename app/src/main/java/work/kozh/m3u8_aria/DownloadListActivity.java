@@ -1,6 +1,7 @@
 package work.kozh.m3u8_aria;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 
@@ -23,6 +24,7 @@ public class DownloadListActivity extends AppCompatActivity {
     private Button mBtnResumeAll;
     private Button mBtnCancelAll;
     private DownloadListAdapter mAdapter;
+    private List<DownloadEntity> mList;
 
 
     @Override
@@ -43,22 +45,37 @@ public class DownloadListActivity extends AppCompatActivity {
         mBtnResumeAll = findViewById(R.id.btn_resume_all);
         mBtnCancelAll = findViewById(R.id.btn_cancel_all);
 
-        final List<DownloadEntity> list = AriaDownloadManager.getTaskList(this);
-        mAdapter = new DownloadListAdapter(list);
+        mList = AriaDownloadManager.getTaskList(this);
+        mAdapter = new DownloadListAdapter(mList);
         AriaDownloadManager.register(mAdapter);
         mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                long taskId = list.get(position).getId();
+                final long taskId = mList.get(position).getId();
                 switch (view.getId()) {
                     case R.id.pause:
                         M3U8Downloader.pauseTask(DownloadListActivity.this, taskId);
                         break;
                     case R.id.resume:
-                        M3U8Downloader.resumeTask(DownloadListActivity.this, taskId, list.get(position).getKey());
+                        M3U8Downloader.resumeTask(DownloadListActivity.this, taskId, mList.get(position).getKey());
                         break;
                     case R.id.cancel:
                         M3U8Downloader.cancelTask(DownloadListActivity.this, taskId);
+                        //更新界面显示
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mList.clear();
+                                List<DownloadEntity> taskList = AriaDownloadManager.getTaskList(DownloadListActivity.this);
+                                if (taskList == null) {
+                                    mAdapter.setNewData(null);
+                                } else {
+                                    mList.addAll(taskList);
+                                    mAdapter.setNewData(mList);
+                                }
+                            }
+                        }, 500);
+
                         break;
                 }
 
@@ -83,6 +100,20 @@ public class DownloadListActivity extends AppCompatActivity {
 
     public void cancel(View view) {
         AriaDownloadManager.removeAllTask(this, true);
+        //更新界面显示
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mList.clear();
+                List<DownloadEntity> taskList = AriaDownloadManager.getTaskList(DownloadListActivity.this);
+                if (taskList == null) {
+                    mAdapter.setNewData(null);
+                } else {
+                    mList.addAll(taskList);
+                    mAdapter.setNewData(mList);
+                }
+            }
+        }, 500);
     }
 
     @Override

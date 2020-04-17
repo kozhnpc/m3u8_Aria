@@ -258,7 +258,8 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
             info.holder.setText(R.id.tvPercent, task.getPercent() + "%");
 
             //设置已下载文件大小文本
-            info.holder.setText(R.id.tvDownloadSize, task.getConvertCurrentProgress() + "/ ");
+            String downlaodSize = ConvertUtil.formatFileSize(task.getCurrentProgress() < 0 ? 0 : task.getCurrentProgress());
+            info.holder.setText(R.id.tvDownloadSize, downlaodSize + "/ ");
 
             // 下载速度
             info.holder.setText(R.id.tvSpeed, task.getConvertSpeed());
@@ -314,13 +315,13 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
 
     @Download.onTaskCancel
     void taskCancel(DownloadTask task) {
-        String url = task.getKey();
+        /*String url = task.getKey();
         DownloadInfo info = mConvertViews.get(url);
         if (info != null) {
             info.holder.setText(R.id.tvSpeed, "下载任务取消...");
         } else {
             notifyDataSetChanged();
-        }
+        }*/
 
         /*if (task.getKey().equals(mUrl)) {
             Log.i("TAG", "cancel");

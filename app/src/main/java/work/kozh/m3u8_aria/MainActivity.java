@@ -4,9 +4,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,7 +19,9 @@ import com.arialyy.aria.util.CommonUtil;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private Button mPause;
     private Button mCancle;
     private FloatingActionButton mFab;
+    private Button mCreate;
+    private EditText mEtUrl;
+    private EditText mEtName;
 
 
     @Override
@@ -52,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
         mPause = findViewById(R.id.pause);
         mCancle = findViewById(R.id.cancle);
         mFab = findViewById(R.id.fab);
+        mCreate = findViewById(R.id.create);
+        mEtUrl = findViewById(R.id.url);
+        mEtName = findViewById(R.id.name);
 
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -234,5 +244,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public void create(View view) {
+        String url = mEtUrl.getText().toString();
+        String name = mEtName.getText().toString();
+        String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/m3u8/";
+        if (TextUtils.isEmpty(url)) {
+            Toast.makeText(this, "请先输入地址", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(name)) {
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+            name = formatter.format(date);
+        }
+
+        long id = M3U8Downloader.createTask(this, url, rootPath + name + ".mp4");
+        Toast.makeText(this, "创建一个下载任务，ID = " + id, Toast.LENGTH_LONG).show();
+
+    }
 
 }
