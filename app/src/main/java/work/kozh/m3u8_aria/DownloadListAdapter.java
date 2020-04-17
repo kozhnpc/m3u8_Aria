@@ -78,16 +78,18 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
         //设置缓存信息
         if (downloadInfo != null) {
             Log.i("TAG", "下载中数据，缓存过");
-            //该条目已经缓存过  使用集合中的holder来设置属性值
+            //该条目已经缓存过  使用缓存的数据来设置属性值
             entity = downloadInfo.mEntity;
 
             //设置进度条
-            ((ProgressBar) downloadInfo.holder.getView(R.id.pbProgress)).setProgress((int) downloadInfo.downloadSize);
-            ((ProgressBar) downloadInfo.holder.getView(R.id.pbProgress)).setMax((int) downloadInfo.totalSize);
+            ((ProgressBar) downloadInfo.holder.getView(R.id.pbProgress)).setProgress((int) downloadInfo.progress);
+            ((ProgressBar) downloadInfo.holder.getView(R.id.pbProgress)).setMax(100);
             downloadInfo.holder.setText(R.id.tvPercent, downloadInfo.progress + "%");
+
             //设置已下载文件大小文本
-            downloadInfo.holder.setText(R.id.tvDownloadSize, ((float) (Math.round(downloadInfo.downloadSize * 100)) / 100) + "M/ ");
-            downloadInfo.holder.setText(R.id.tvTotalSize, ((float) (Math.round(downloadInfo.totalSize * 100)) / 100) + "M");
+            String downloadSize = ConvertUtil.formatFileSize(downloadInfo.downloadSize < 0 ? 0 : downloadInfo.downloadSize);
+            downloadInfo.holder.setText(R.id.tvDownloadSize, downloadSize + " / ");
+//            downloadInfo.holder.setText(R.id.tvTotalSize, ((float) (Math.round(downloadInfo.totalSize * 100)) / 100) + "M");
 
             //初始化时 动态地设置下载的提示文字 tvText 显示下载速度 或者下载状态
             showDownloadingInfo(downloadInfo.holder, downloadInfo.mEntity);
@@ -97,16 +99,14 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
             //还没有缓存过 实时获取属性，随后加入到缓存中
             //设置下载进度
             int totalSize = (int) entity.getFileSize();
-            int downloaded = (int) entity.getCurrentProgress();
-            double rate = (double) totalSize / Integer.MAX_VALUE;
 
             //进度条
             ((ProgressBar) holder.getView(R.id.pbProgress)).setProgress(entity.getPercent());
-            ((ProgressBar) holder.getView(R.id.pbProgress)).setMax(totalSize);
+            ((ProgressBar) holder.getView(R.id.pbProgress)).setMax(100);
 
             // 下载文件大小
             String downlaodSize = ConvertUtil.formatFileSize(entity.getCurrentProgress() < 0 ? 0 : entity.getCurrentProgress());
-            holder.setText(R.id.tvDownloadSize, downlaodSize + "/ ");
+            holder.setText(R.id.tvDownloadSize, downlaodSize + " / ");
             holder.setText(R.id.tvTotalSize, "0000M");
             // 下载百分比
             holder.setText(R.id.tvPercent, entity.getPercent() + "%");
@@ -133,6 +133,8 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
     private void showDownloadingInfo(BaseViewHolder holder, DownloadEntity entity) {
 
         int taskState = AriaDownloadManager.getTaskState(mContext, entity.getId());
+
+        Log.i("TAG", "taskState = " + taskState);
 
         //设置提示信息文本内容
         switch (taskState) {
@@ -248,6 +250,7 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
     protected void running(DownloadTask task) {
         //下载任务进行中  获取下载信息
         //下载进度  下载速度
+        //实时更新item信息显示 并缓存下来，下次再滑动到这个item时，就会从缓存中读取数据 设置
 
         DownloadInfo info = mConvertViews.get(task.getKey());
         if (info != null) {
@@ -255,14 +258,24 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
             //设置进度条
             // 下载进度百分比
             ((ProgressBar) info.holder.getView(R.id.pbProgress)).setProgress(task.getPercent());
+            ((ProgressBar) info.holder.getView(R.id.pbProgress)).setMax(100);
             info.holder.setText(R.id.tvPercent, task.getPercent() + "%");
 
             //设置已下载文件大小文本
-            String downlaodSize = ConvertUtil.formatFileSize(task.getCurrentProgress() < 0 ? 0 : task.getCurrentProgress());
-            info.holder.setText(R.id.tvDownloadSize, downlaodSize + "/ ");
+            String downloadSize = ConvertUtil.formatFileSize(task.getCurrentProgress() < 0 ? 0 : task.getCurrentProgress());
+            info.holder.setText(R.id.tvDownloadSize, downloadSize + "/ ");
 
             // 下载速度
             info.holder.setText(R.id.tvSpeed, task.getConvertSpeed());
+
+            //后续还需要实时缓存记录下载的进度等信息，用于给列表保存显示，这样下次再显示时就是最新的下载数据
+            info.progress = task.getPercent();
+//            info.totalSize = (int) fileSize;
+            info.downloadSize = (int) task.getCurrentProgress();
+            info.mEntity = task.getEntity();//这个对象可以不缓存 减小内存消耗 其实后续从中获取的信息就是任务ID 不会动态变化，无需缓存
+
+            mConvertViews.put(task.getKey(), info);
+
         } else {
             Log.i("TAG", "Adapter else部分调用下载进度");
             notifyDataSetChanged();
@@ -354,10 +367,12 @@ public class DownloadListAdapter extends BaseQuickAdapter<DownloadEntity, BaseVi
     @Download.onTaskComplete
     void taskComplete(DownloadTask task) {
 
+        Toast.makeText(mContext, "文件下载完成，路径：" + task.getFilePath(), Toast.LENGTH_LONG).show();
         String url = task.getKey();
         DownloadInfo info = mConvertViews.get(url);
         if (info != null) {
             info.holder.setText(R.id.tvSpeed, "下载完成...");
+            Log.i("TAG", "文件下载完成，路径：" + task.getFilePath());
         } else {
             notifyDataSetChanged();
         }

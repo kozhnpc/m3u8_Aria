@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +33,7 @@ import me.weyye.hipermission.PermissionCallback;
 import me.weyye.hipermission.PermissionItem;
 import work.kozh.aria_m3u8.AriaDownloadManager;
 import work.kozh.aria_m3u8.m3u8.M3U8Downloader;
+import work.kozh.aria_m3u8.simple.SimpleDownloader;
 import work.kozh.aria_m3u8.utils.ConvertUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,7 +49,13 @@ public class MainActivity extends AppCompatActivity {
     private Button mCreate;
     private EditText mEtUrl;
     private EditText mEtName;
+    private RadioGroup mGroup;
+    private RadioButton mM3u8;
+    private RadioButton mNormal;
 
+    private final int M3U8_TYPE = 0;
+    private final int NORMAL_TYPE = 1;
+    private int currentType = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,12 +71,30 @@ public class MainActivity extends AppCompatActivity {
         mCreate = findViewById(R.id.create);
         mEtUrl = findViewById(R.id.url);
         mEtName = findViewById(R.id.name);
+        mGroup = findViewById(R.id.group);
+        mM3u8 = findViewById(R.id.m3u8);
+        mNormal = findViewById(R.id.normal);
+
 
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DownloadListActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        mGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.m3u8:
+                        currentType = M3U8_TYPE;
+                        break;
+                    case R.id.normal:
+                        currentType = NORMAL_TYPE;
+                        break;
+                }
             }
         });
 
@@ -142,6 +169,40 @@ public class MainActivity extends AppCompatActivity {
         AriaDownloadManager.unRegister(this);
     }
 
+    //**********************  创建多任务  **************************//
+
+    public void create(View view) {
+        String url = mEtUrl.getText().toString();
+        String name = mEtName.getText().toString();
+        String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/m3u8/";
+        if (TextUtils.isEmpty(url)) {
+            Toast.makeText(this, "请先输入地址", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(name)) {
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+            name = formatter.format(date);
+        }
+
+        if (currentType == M3U8_TYPE) {
+            long id = M3U8Downloader.createTask(this, url, rootPath + name + ".mp4");
+            Toast.makeText(this, "创建一个M3U8下载任务，ID = " + id, Toast.LENGTH_LONG).show();
+        } else if (currentType == NORMAL_TYPE) {
+
+
+//            Log.i("TAG", "下载文件的disposition：" + disposition);
+            long id = SimpleDownloader.createTask(this, url, rootPath + name + ".txt");
+            Toast.makeText(this, "创建一个普通下载任务，ID = " + id, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "创建一个普通下载任务，服务端名字 = " + disposition, Toast.LENGTH_LONG).show();
+
+        } else {
+            Toast.makeText(this, "请先选择下载文件的类型", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
     //***************************  下载过程监听方法  *****************************//
 
     @M3U8.onPeerStart
@@ -182,12 +243,14 @@ public class MainActivity extends AppCompatActivity {
     void taskStart(DownloadTask task) {
         //开始下载了...
         //可以在这里获取切片的总数量
-        int peerNum = task.getDownloadEntity().getM3U8Entity().getPeerNum();
+        /*int peerNum = task.getDownloadEntity().getM3U8Entity().getPeerNum();
         if (task.getKey().equals(mUrl)) {
             Log.i("TAG", "isComplete = " + task.isComplete() + ", state = " + task.getState());
             Log.i("TAG", "切片总数量 = " + peerNum);
             mTextView.setText("下载开始...");
-        }
+        }*/
+
+
     }
 
     @Download.onTaskRunning
@@ -244,25 +307,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    public void create(View view) {
-        String url = mEtUrl.getText().toString();
-        String name = mEtName.getText().toString();
-        String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/m3u8/";
-        if (TextUtils.isEmpty(url)) {
-            Toast.makeText(this, "请先输入地址", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (TextUtils.isEmpty(name)) {
-            Date date = new Date();
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-            name = formatter.format(date);
-        }
-
-        long id = M3U8Downloader.createTask(this, url, rootPath + name + ".mp4");
-        Toast.makeText(this, "创建一个下载任务，ID = " + id, Toast.LENGTH_LONG).show();
-
-    }
 
 }

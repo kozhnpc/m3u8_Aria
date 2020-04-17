@@ -7,6 +7,9 @@ import com.arialyy.aria.core.download.m3u8.M3U8VodOption;
 
 import work.kozh.aria_m3u8.AriaDownloadManager;
 
+/**
+ * 下载m3u8点播文件
+ */
 public class M3U8Downloader {
 
     //同时下载ts文件的数量

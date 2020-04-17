@@ -6,6 +6,7 @@ import com.arialyy.aria.core.processor.IBandWidthUrlConverter;
 
 /**
  * 重定向获取新的m3u8地址
+ * 可以用来筛选分辨率
  */
 public class BandWidthUrlConverter implements IBandWidthUrlConverter {
     private String url;
