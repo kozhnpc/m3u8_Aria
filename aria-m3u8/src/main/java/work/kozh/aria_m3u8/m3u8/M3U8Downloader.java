@@ -92,4 +92,27 @@ public class M3U8Downloader {
     }
 
 
+    /**
+     * 在创建任务之后，添加一些额外的信息，比如下载的缩略图
+     *
+     * @param context
+     * @param taskId
+     * @param str
+     */
+    public static void setExtendField(Context context, long taskId, String str) {
+        Aria.download(context).load(taskId).setExtendField(str);
+    }
+
+    /**
+     * 获取之前保存的额外的信息
+     *
+     * @param context
+     * @param taskId
+     * @return
+     */
+    public static String getExtendField(Context context, long taskId) {
+        return Aria.download(context).load(taskId).getExtendField();
+    }
+
+
 }
